@@ -1,0 +1,23 @@
+{
+  "lane": "Lane 2 Refresh / Content Opportunity Scoring",
+  "slice": "impressions_90d >= 100",
+  "slice_rows": 22006,
+  "base_rate_declining": 0.5977,
+  "flagged_rows": 7025,
+  "flagged_decline_rate": 0.6286,
+  "precision_at_50": 0.9,
+  "reason_code": "stale_visible_prior_window",
+  "action": "review_for_refresh",
+  "signals": [
+    {
+      "name": "staleness_days_since_last_update",
+      "flag": "refresh",
+      "verdict": "MIXED"
+    },
+    {
+      "name": "impression_tier_volume",
+      "flag": "quick-win",
+      "verdict": "OPPOSITE"
+    }
+  ]
+}
