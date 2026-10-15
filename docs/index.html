@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ranking Webpages for Next-Month Click Decline | Hassan Raza</title>
+  <meta
+    name="description"
+    content="A machine learning capstone that ranks webpages for next-month click decline using a February CTR baseline and logistic regression."
+  >
+  <style>
+    :root {
+      --primary: #2563eb;
+      --text: #111827;
+      --muted: #4b5563;
+      --background: #f8fafc;
+      --card: #ffffff;
+      --border: #e5e7eb;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      background: var(--background);
+      color: var(--text);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.7;
+    }
+    a { color: var(--primary); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    header {
+      background: linear-gradient(135deg, #eff6ff, #f5f3ff);
+      border-bottom: 1px solid var(--border);
+      padding: 70px 20px 55px;
+    }
+    .hero { max-width: 1050px; margin: 0 auto; }
+    .eyebrow {
+      color: var(--primary);
+      font-size: 0.9rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+    h1 {
+      max-width: 900px;
+      margin: 12px 0 18px;
+      font-size: clamp(2.2rem, 5vw, 4.2rem);
+      line-height: 1.1;
+      letter-spacing: -0.04em;
+    }
+    .hero-description { max-width: 800px; color: var(--muted); font-size: 1.15rem; }
+    .author { margin-top: 25px; font-weight: 700; }
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: rgba(255, 255, 255, 0.95);
+      border-bottom: 1px solid var(--border);
+      backdrop-filter: blur(8px);
+    }
+    .nav-inner {
+      max-width: 1050px;
+      margin: 0 auto;
+      padding: 12px 20px;
+      display: flex;
+      gap: 16px;
+      overflow-x: auto;
+      white-space: nowrap;
+    }
+    nav a { color: var(--muted); font-size: 0.9rem; font-weight: 600; }
+    main { max-width: 1050px; margin: 0 auto; padding: 35px 20px 80px; }
+    section { margin: 55px 0; scroll-margin-top: 80px; }
+    h2 { margin-bottom: 18px; font-size: 2rem; line-height: 1.2; }
+    h3 { margin-top: 32px; font-size: 1.35rem; }
+    p, li { color: var(--muted); }
+    li { margin-bottom: 10px; }
+    .abstract, .card, .metric, .highlight, .repro-box, table {
+      background: var(--card);
+    }
+    .abstract {
+      border: 1px solid var(--border);
+      border-left: 5px solid var(--primary);
+      padding: 28px;
+      border-radius: 12px;
+    }
+    .metric-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin: 30px 0;
+    }
+    .metric {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 22px;
+      text-align: center;
+      color: var(--muted);
+    }
+    .metric strong {
+      display: block;
+      margin-bottom: 7px;
+      color: var(--primary);
+      font-size: 1.7rem;
+      line-height: 1.1;
+    }
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 18px;
+      margin-top: 25px;
+    }
+    .card { border: 1px solid var(--border); border-radius: 12px; padding: 24px; }
+    .card h3 { margin-top: 0; }
+    table { width: 100%; border-collapse: collapse; margin: 25px 0; border: 1px solid var(--border); }
+    th, td { padding: 14px 16px; border-bottom: 1px solid var(--border); text-align: left; }
+    th { background: #f1f5f9; }
+    tr:last-child td { border-bottom: none; }
+    .highlight {
+      border: 1px solid #bfdbfe;
+      border-radius: 12px;
+      padding: 22px;
+      margin: 25px 0;
+      background: #eff6ff;
+    }
+    code { background: #f1f5f9; padding: 2px 6px; border-radius: 5px; }
+    .repro-box { border: 1px solid var(--border); border-radius: 12px; padding: 25px; }
+    .footer {
+      border-top: 1px solid var(--border);
+      padding: 35px 20px;
+      text-align: center;
+      color: var(--muted);
+      background: white;
+    }
+    @media (max-width: 850px) {
+      .metric-grid, .card-grid { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 560px) {
+      .metric-grid, .card-grid { grid-template-columns: 1fr; }
+      table { display: block; overflow-x: auto; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="hero">
+      <div class="eyebrow">Machine Learning Capstone</div>
+      <h1>Ranking Webpages for Next-Month Click Decline</h1>
+      <p class="hero-description">
+        February search and engagement signals are used to rank webpages that
+        later have lower average daily clicks in March. The output is a
+        human-reviewed queue, not an automatic refresh decision.
+      </p>
+      <div class="author">Hassan Raza</div>
+    </div>
+  </header>
+
+  <nav>
+    <div class="nav-inner">
+      <a href="#abstract">Abstract</a>
+      <a href="#data">Data</a>
+      <a href="#methodology">Methodology</a>
+      <a href="#results">Results</a>
+      <a href="#validation">Validation</a>
+      <a href="#errors">Errors</a>
+      <a href="#recommendations">Recommendations</a>
+      <a href="#limits">Limits</a>
+      <a href="#reproducibility">Reproducibility</a>
+    </div>
+  </nav>
+
+  <main>
+    <section id="abstract">
+      <h2>Abstract</h2>
+      <div class="abstract">
+        <p>
+          This capstone examines whether February search and engagement signals
+          can help prioritize webpages that later experience lower average
+          daily clicks in March. The analysis uses 23,703 webpages from 19
+          anonymized clients. Six February-only features were evaluated with a
+          client-grouped holdout so that all four test clients were unseen
+          during training.
+        </p>
+        <p>
+          A February CTR baseline was compared with logistic regression. Both
+          methods reached 100% Precision@20 and 98% Precision@50. The CTR
+          baseline had slightly higher average precision: 0.8755 compared with
+          0.8619. The ranked review queue therefore uses February CTR, with a
+          warning for low-volume pages. These results are observational and
+          specific to this dataset, this split, and the February-to-March 2026
+          window.
+        </p>
+      </div>
+    </section>
+
+    <section id="data">
+      <h2>Data</h2>
+      <p>
+        The notebook reads page-level Google Search Console and Google
+        Analytics 4 rows for February and March 2026 from the FlyRank
+        internship warehouse through DuckDB. No raw warehouse export is in
+        the public notebook. Each row is one anonymized webpage for one
+        anonymized client.
+      </p>
+      <div class="metric-grid">
+        <div class="metric"><strong>23,703</strong>Modelling pages</div>
+        <div class="metric"><strong>19</strong>Anonymized clients</div>
+        <div class="metric"><strong>22,032</strong>Training pages</div>
+        <div class="metric"><strong>1,671</strong>Test pages</div>
+      </div>
+      <p>
+        Features come only from February: average daily impressions, average
+        daily clicks, weighted average search position, average daily
+        sessions, engagement rate, and click-through rate. March is used only
+        to build the label. A page is labeled declined when its March average
+        daily clicks are lower than its February average daily clicks.
+      </p>
+      <p>
+        Client names, domains, URLs, private queries, tokens, and raw
+        warehouse files are not published. Client and content identifiers are
+        kept for grouping only. They are not model features.
+      </p>
+    </section>
+
+    <section id="methodology">
+      <h2>Methodology</h2>
+      <div class="card-grid">
+        <div class="card">
+          <h3>CTR baseline</h3>
+          <p>
+            Pages are ranked by February click-through rate. A higher February
+            CTR receives a higher baseline score. The same test pages and
+            ranking metrics are used for both methods.
+          </p>
+        </div>
+        <div class="card">
+          <h3>Logistic regression</h3>
+          <p>
+            Six February features are standardized, then a logistic regression
+            model estimates a decline probability. The random seed is 42.
+            Every page from a client stays in either train or test.
+          </p>
+        </div>
+      </div>
+      <p>
+        The reported metrics are the test-set base rate, Precision@20,
+        Precision@50, and average precision. Accuracy is not the selection
+        metric, because the goal is a short review queue.
+      </p>
+    </section>
+
+    <section id="results">
+      <h2>Results</h2>
+      <p>
+        The test set has 1,671 pages from four clients that were not in
+        training. The test decline rate was 23.22%.
+      </p>
+      <table>
+        <thead>
+          <tr>
+            <th>Method</th>
+            <th>Precision@20</th>
+            <th>Precision@50</th>
+            <th>Average precision</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>February CTR baseline</strong></td>
+            <td>100%</td>
+            <td>98%</td>
+            <td><strong>0.8755</strong></td>
+          </tr>
+          <tr>
+            <td>Logistic regression</td>
+            <td>100%</td>
+            <td>98%</td>
+            <td>0.8619</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="highlight">
+        <strong>Key finding</strong>
+        <p>
+          The two methods tied on the top 20 and the top 50. The CTR baseline
+          was 0.0136 higher on average precision, so it is the ranking used
+          for the review queue. Logistic regression stays useful for seeing
+          how the other features move together. It does not replace the
+          baseline on this holdout.
+        </p>
+      </div>
+    </section>
+
+    <section id="validation">
+      <h2>Validation and leakage</h2>
+      <p>
+        Training used 22,032 pages from 15 clients. Testing used 1,671 pages
+        from four unseen clients. Client overlap was zero. All six features
+        are from February. March data is only the label.
+      </p>
+      <p>
+        These columns are not features: <code>client_hash_id</code>,
+        <code>content_hash_id</code>, <code>decision_month</code>,
+        <code>march_avg_daily_clicks</code>, and
+        <code>declined_next_month</code>.
+      </p>
+      <p>
+        February CTR had a standardized coefficient of 3.8752. Removing it
+        dropped Precision@20 from 100% to 40%, Precision@50 from 98% to 36%,
+        and average precision from 0.8619 to 0.4231. That is concentration on
+        one February feature, not a March leak. No direct future-data, target,
+        or identifier leakage was found.
+      </p>
+    </section>
+
+    <section id="errors">
+      <h2>Error analysis</h2>
+      <p>
+        At a 0.50 threshold the logistic regression model produced 1,252 true
+        negatives, 172 true positives, 31 false positives, and 216 false
+        negatives. It missed more declining pages than it falsely flagged, so
+        the rank is more useful than the hard cutoff.
+      </p>
+      <div class="card-grid">
+        <div class="card">
+          <h3>High-confidence false positive</h3>
+          <p>
+            Decline probability 0.9991, and the page did not decline. It had
+            5.50 average daily impressions, 0.32 average daily clicks, and a
+            February CTR of 5.84%. A few clicks made CTR look high.
+          </p>
+        </div>
+        <div class="card">
+          <h3>Borderline false negative</h3>
+          <p>
+            Decline probability 0.4985, and the page later declined. A small
+            threshold change would have flipped the class. The 0.50 cutoff
+            hides uncertainty.
+          </p>
+        </div>
+      </div>
+      <div class="card" style="margin-top: 18px;">
+        <h3>High-visibility false negative</h3>
+        <p>
+          Decline probability 0.4194, and the page later declined. It had
+          232.18 average daily impressions, average position 7.16, and a
+          February CTR of 0.09%. CTR does not explain every later drop.
+        </p>
+      </div>
+    </section>
+
+    <section id="recommendations">
+      <h2>Ranked recommendations</h2>
+      <p>
+        The queue sorts unseen test pages from highest to lowest February CTR.
+        On this holdout, all 20 pages at the top later had lower average daily
+        clicks in March. Most of those pages also had very low impression and
+        click volume, so the reason code is: high CTR on low volume, verify
+        stability.
+      </p>
+      <p>For each high-priority page, a reviewer should:</p>
+      <ol>
+        <li>Check whether February volume was large enough for a stable CTR.</li>
+        <li>Look at the March and recent trend.</li>
+        <li>Check seasonality and changing search demand.</li>
+        <li>Review position, impressions, and competing pages.</li>
+        <li>Inspect freshness, relevance, and technical issues.</li>
+        <li>Choose monitoring, an update, or no action.</li>
+      </ol>
+      <p>
+        The queue does not prove that high CTR causes decline, and it does not
+        prove that refreshing a flagged page will help.
+      </p>
+    </section>
+
+    <section id="limits">
+      <h2>Limits</h2>
+      <ul>
+        <li>One window only: February features and a March outcome.</li>
+        <li>Four unseen test clients, and one grouped split.</li>
+        <li>The model’s useful signal is mostly February CTR.</li>
+        <li>CTR is unstable when impressions and clicks are small.</li>
+        <li>The label records only whether clicks were lower, not how large, how long, or why.</li>
+        <li>Nothing here should automatically update, remove, or rewrite a page.</li>
+      </ul>
+    </section>
+
+    <section id="reproducibility">
+      <h2>Reproducibility</h2>
+      <div class="repro-box">
+        <p>
+          The notebook runs top to bottom in Google Colab with Python, DuckDB,
+          pandas, NumPy, scikit-learn, and Hugging Face Hub. The seed is 42.
+          The warehouse token stays in a Colab secret named <code>HF_TOKEN</code>
+          and is not stored in the notebook.
+        </p>
+        <p>
+          <a href="https://github.com/Hassan-Raza0/flyrank-ml-intership-hassan-raza/blob/main/work/notebooks/capstone_refresh_opportunity.ipynb">Open the capstone notebook</a>
+        </p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <p>Hassan Raza · FlyRank Machine Learning Internship</p>
+    <p>Built on the anonymized FlyRank internship warehouse. Human review comes before any content action.</p>
+  </footer>
+</body>
+</html>

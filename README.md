@@ -16,6 +16,38 @@ no private client data, no setup headaches.
 
 ---
 
+## Final Capstone Project
+
+### Ranking Webpages for Next-Month Click Decline
+
+This project investigates whether February search and engagement signals can help rank webpages that later experience lower average daily clicks in March.
+
+The analysis used:
+
+- 23,703 webpages
+- 19 anonymized clients
+- Six February-only features
+- A client-grouped holdout with four unseen test clients
+- A CTR baseline and logistic regression
+
+### Main Results
+
+| Method | Precision@20 | Precision@50 | Average Precision |
+|---|---:|---:|---:|
+| February CTR Baseline | 100% | 98% | 0.8755 |
+| Logistic Regression | 100% | 98% | 0.8619 |
+
+The simpler CTR baseline slightly outperformed logistic regression, so it was selected for the final ranked review queue.
+
+### Project Links
+
+- [Read the Public Research Paper](https://hassan-raza0.github.io/flyrank-ml-intership-hassan-raza/)
+- [Open the Capstone Notebook](https://github.com/Hassan-Raza0/flyrank-ml-intership-hassan-raza/blob/main/work/notebooks/capstone_refresh_opportunity.ipynb)
+
+The output is intended for human decision support and should not be treated as an automatic content-refresh decision.
+
+---
+
 ## Quickstart — first win in 2 minutes
 
 The fastest path is Google Colab (one click, zero install). Open Notebook 1 and run all cells:
